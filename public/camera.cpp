@@ -22,17 +22,14 @@ float Camera::phi = 34.11f;
 
 void
 Camera::trackballCamera (vec2 initialAngles, vec2 initialPos, vec2 currPos) {
-    // Apply the offset to the latitude and longitude angles
     theta = -((currPos[0] - initialPos[0]) * 0.5f) + initialAngles[0];
     phi = ((currPos[1] - initialPos[1]) * 0.5f) + initialAngles[1];
     phi = std::min(179.f, std::max(0.f, phi));
     EM_ASM({
-        console.log("Trying to push camera state: "+JSON.stringify(shared_data));
         if (!shared_data.is_locked) {
             shared_data.camera_state.fov = $0;
             shared_data.camera_state.theta = $1;
             shared_data.camera_state.phi = $2;
-            console.log("Pushing camera state to server");
             socket.emit("camera-angles", shared_data.camera_state);
         }
     }, fov, theta, phi);
@@ -80,13 +77,11 @@ void Camera::updateFov (float y_offset) {
         fov = 45.f;
 
     EM_ASM({
-        console.log("Trying to push camera state: "+JSON.stringify(shared_data));
         socket.emit("acquire-lock", {});
         if (!shared_data.is_locked) {
             shared_data.camera_state.fov = $0;
             shared_data.camera_state.theta = $1;
             shared_data.camera_state.phi = $2;
-            console.log("Pushing camera state to server");
             socket.emit("camera-angles", shared_data.camera_state);
         }
         socket.emit("free-lock", {});
@@ -106,10 +101,6 @@ Camera::populateViewMatrix (mat4x4 view) {
 
     vec3 position;
     populateCameraPosition(position);
-    //position[0] = radius * sin(degrees(theta)) * cos(degrees(phi));
-    //position[1] = radius * sin(degrees(phi));
-    //position[2] = radius * cos(degrees(theta)) * cos(degrees(phi));
-
     mat4x4_look_at(view, position, front, up);
 }
 

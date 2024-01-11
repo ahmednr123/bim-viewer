@@ -1,4 +1,4 @@
-// emcc main.cpp -o index.html -s USE_WEBGL2=1 -s USE_GLFW=3 -s WASM=1 -std=c++1z
+//emcc shader.cpp camera.cpp drawable.cpp main.cpp -o index.html -s "EXPORTED_FUNCTIONS=['_lock','_free_lock','_update_camera_state','_main']" -s USE_WEBGL2=1 -s USE_GLFW=3 -s WASM=1 -std=c++1z
 
 // base:  https://www.glfw.org/docs/latest/quick.html#quick_example
 // ref: https://gist.github.com/SuperV1234/5c5ad838fe5fe1bf54f9
@@ -48,25 +48,6 @@ static void key_callback (GLFWwindow *window, int key, int scancode, int action,
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
-
-static const char *v_shader_text =
-    "uniform mat4 MVP;\n"
-    "attribute vec3 vCol;\n"
-    "attribute vec2 vPos;\n"
-    "varying vec3 color;\n"
-    "void main()\n"
-    "{\n"
-    "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-    "    color = vCol;\n"
-    "}\n";
-
-static const char *f_shader_text =
-    "precision mediump float;\n"
-    "varying vec3 color;\n"
-    "void main()\n"
-    "{\n"
-    "    gl_FragColor = vec4(color, 1.0);\n"
-    "}\n";
 
 static const char *vertex_shader_text =
     "#version 300 es\n"

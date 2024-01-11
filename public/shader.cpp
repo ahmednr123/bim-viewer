@@ -42,10 +42,6 @@ Shader::createShader (const char* vertexShader, const char* fragmentShader) {
 
 Shader::Shader (const char *vs_text, const char *fs_text) {
     program = createShader(vs_text, fs_text);
-//    Should be set as per the shader provided!
-//    attachValue(UNIFORM, "lightColor");
-//    attachValue(UNIFORM, "objectColor");
-//    attachValue(UNIFORM, "lightPos");
 };
 
 unsigned int

@@ -64,19 +64,11 @@ void Drawable::setColor (vec3 color) {
 }
 
 void Drawable::bind () {
-    //shader.bind();
-    //glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
     glBindVertexArray(vertex_array_obj);
-    //if (isIndicesAdded)
-    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_buffer_id);
 };
 
 void Drawable::unbind () {
-    //shader.unbind();
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    //if (isIndicesAdded)
-    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 };
 
 void Drawable::draw () {

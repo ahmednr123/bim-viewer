@@ -26,7 +26,6 @@ function free_socket_lock () {
 }
 
 function push_camera_state () {
-    console.log("Pushing camera state to server");
     socket.emit("camera-angles", shared_data.camera_state);
 }
 
@@ -69,10 +68,8 @@ function render () {
 }
 
 socket.on("socket-connected", (data) => {
-    console.log(`connected: ${JSON.stringify(data)}`);
     for (let user of data) {
         if (!shared_data.sockets.find(o => o.id == user.id)) {
-            console.log(JSON.stringify(user));
             shared_data.sockets.push(user);
             render();
         }
@@ -89,7 +86,6 @@ socket.on("camera-angles", (data) => {
     shared_data.camera_state.fov = data.camera_state.fov;
     shared_data.camera_state.theta = data.camera_state.theta;
     shared_data.camera_state.phi = data.camera_state.phi;
-    console.log(`fov: ${shared_data.camera_state.fov}, theta: ${shared_data.camera_state.theta}, phi: ${shared_data.camera_state.phi}`);
     Module._update_camera_state(
         shared_data.camera_state.fov,
         shared_data.camera_state.theta,
@@ -100,7 +96,6 @@ socket.on("camera-angles", (data) => {
 socket.on("update-lock", (data) => {
     shared_data.lock_color = data.color;
     shared_data.is_locked = true;
-    console.log(`color: ${data.color}`);
     Module._lock();
     render();
 });

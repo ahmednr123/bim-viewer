@@ -31,9 +31,6 @@ public:
     static void populateViewMatrix (mat4x4 m);
     static void populateProjectionMatrix (mat4x4 m);
     static void populateCameraPosition (vec3 position);
-    //static void pan (float dx, float dy);
-    //static void rotate (float dTheta, float dPhi);
-    //static void zoom (float distance);
 };
 
 #endif // _CAMERA_H_
