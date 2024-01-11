@@ -37,6 +37,7 @@ extern "C" {
         locked = false;
     }
     void update_camera_state (float fov, float theta, float phi) {
+        printf("Updating camera state: %f, %f, %f", fov, theta, phi);
         Camera::fov = fov;
         Camera::theta = theta;
         Camera::phi = phi;
@@ -146,6 +147,7 @@ void cursor_enter_callback (GLFWwindow* window, int entered) {
     } else {
         is_mouse_down = false;
         pos_registered = false;
+        EM_ASM(free_socket_lock());
     }
 }
 
@@ -153,17 +155,19 @@ void mouse_button_callback (GLFWwindow* window, int button, int action, int mods
     if (locked)
         return;
 
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         //send_log();
         printf("Mouse pressed\n");
         is_mouse_down = true;
+        EM_ASM(acquire_lock());
     }
 
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         //send_log();
         printf("Mouse released\n");
         is_mouse_down = false;
         pos_registered = false;
+        EM_ASM(free_socket_lock());
     }
 }
 

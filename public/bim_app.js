@@ -1,4 +1,9 @@
-const socket = io();
+const socket = io({ autoConnect: false });
+
+setTimeout(function () {
+    document.getElementById("loading-screen").style.display = "none";
+    socket.connect();
+}, 6000);
 
 const shared_data = {
     color: null,
@@ -12,17 +17,46 @@ const shared_data = {
     }
 };
 
+function acquire_lock () {
+    socket.emit("acquire-lock", {});
+}
+
+function free_socket_lock () {
+    socket.emit("free-lock", {});
+}
+
 function push_camera_state () {
+    console.log("Pushing camera state to server");
     socket.emit("camera-angles", shared_data.camera_state);
 }
 
 function render () {
-    const lock_border = document.getElementById("lock_border");
+    const lock_border_left = document.getElementById("lock_border_left");
+    const lock_border_top = document.getElementById("lock_border_top");
+    const lock_border_right = document.getElementById("lock_border_right");
+    const lock_border_bottom = document.getElementById("lock_border_bottom");
+
+    function show_lock_borders (color) {
+        lock_border_left.style.display = 'block';
+        lock_border_left.style.background = `${color}`;
+        lock_border_top.style.display = 'block';
+        lock_border_top.style.background = `${color}`;
+        lock_border_right.style.display = 'block';
+        lock_border_right.style.background = `${color}`;
+        lock_border_bottom.style.display = 'block';
+        lock_border_bottom.style.background = `${color}`;
+    }
+    function hide_lock_borders () {
+        lock_border_left.style.display = 'none';
+        lock_border_top.style.display = 'none';
+        lock_border_right.style.display = 'none';
+        lock_border_bottom.style.display = 'none';
+    }
+
     if (shared_data.is_locked) {
-        lock_border.display = 'block';
-        lock_border.style.border = `20px solid ${shared_data.lock_color}`;
+        show_lock_borders(shared_data.lock_color);
     } else {
-        lock_border.display = 'none';
+        hide_lock_borders();
     }
 
     const sockets_div = document.getElementById("sockets_div");
@@ -35,9 +69,13 @@ function render () {
 }
 
 socket.on("socket-connected", (data) => {
-    if (!shared_data.sockets.find(o => o.id == data.id)) {
-        shared_data.sockets.push(data);
-        render();
+    console.log(`connected: ${JSON.stringify(data)}`);
+    for (let user of data) {
+        if (!shared_data.sockets.find(o => o.id == user.id)) {
+            console.log(JSON.stringify(user));
+            shared_data.sockets.push(user);
+            render();
+        }
     }
 });
 
@@ -48,9 +86,12 @@ socket.on("socket-disconnected", (data) => {
 
 socket.on("camera-angles", (data) => {
     shared_data.color = data.color;
+    shared_data.camera_state.fov = data.camera_state.fov;
     shared_data.camera_state.theta = data.camera_state.theta;
     shared_data.camera_state.phi = data.camera_state.phi;
+    console.log(`fov: ${shared_data.camera_state.fov}, theta: ${shared_data.camera_state.theta}, phi: ${shared_data.camera_state.phi}`);
     Module._update_camera_state(
+        shared_data.camera_state.fov,
         shared_data.camera_state.theta,
         shared_data.camera_state.phi
     );
@@ -59,6 +100,7 @@ socket.on("camera-angles", (data) => {
 socket.on("update-lock", (data) => {
     shared_data.lock_color = data.color;
     shared_data.is_locked = true;
+    console.log(`color: ${data.color}`);
     Module._lock();
     render();
 });

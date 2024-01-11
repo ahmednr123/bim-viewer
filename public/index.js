@@ -964,7 +964,13 @@ function dbg(text) {
 // end include: runtime_debug.js
 // === Body ===
 
-function update_camera_state(fov,theta,phi) { if (!shared_data.is_locked) { shared_data.camera_state.fov = fov; shared_data.camera_state.theta = theta; shared_data.camera_state.phi = phi; push_camera_state(); } }
+var ASM_CONSTS = {
+  832656: ($0, $1, $2) => { console.log("Trying to push camera state: "+JSON.stringify(shared_data)); if (!shared_data.is_locked) { shared_data.camera_state.fov = $0; shared_data.camera_state.theta = $1; shared_data.camera_state.phi = $2; console.log("Pushing camera state to server"); socket.emit("camera-angles", shared_data.camera_state); } },  
+ 832976: ($0, $1, $2) => { console.log("Trying to push camera state: "+JSON.stringify(shared_data)); socket.emit("acquire-lock", {}); if (!shared_data.is_locked) { shared_data.camera_state.fov = $0; shared_data.camera_state.theta = $1; shared_data.camera_state.phi = $2; console.log("Pushing camera state to server"); socket.emit("camera-angles", shared_data.camera_state); } socket.emit("free-lock", {}); },  
+ 833359: () => { free_socket_lock() },  
+ 833378: () => { acquire_lock() },  
+ 833393: () => { free_socket_lock() }
+};
 
 
 // end include: preamble.js
@@ -1204,6 +1210,45 @@ function update_camera_state(fov,theta,phi) { if (!shared_data.is_locked) { shar
 
   var _abort = () => {
       abort('native code called abort()');
+    };
+
+  var readEmAsmArgsArray = [];
+  var readEmAsmArgs = (sigPtr, buf) => {
+      // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
+      assert(Array.isArray(readEmAsmArgsArray));
+      // The input buffer is allocated on the stack, so it must be stack-aligned.
+      assert(buf % 16 == 0);
+      readEmAsmArgsArray.length = 0;
+      var ch;
+      // Most arguments are i32s, so shift the buffer pointer so it is a plain
+      // index into HEAP32.
+      while (ch = HEAPU8[sigPtr++]) {
+        var chr = String.fromCharCode(ch);
+        var validChars = ['d', 'f', 'i', 'p'];
+        assert(validChars.includes(chr), `Invalid character ${ch}("${chr}") in readEmAsmArgs! Use only [${validChars}], and do not specify "v" for void return argument.`);
+        // Floats are always passed as doubles, so all types except for 'i'
+        // are 8 bytes and require alignment.
+        var wide = (ch != 105);
+        wide &= (ch != 112);
+        buf += wide && (buf % 8) ? 4 : 0;
+        readEmAsmArgsArray.push(
+          // Special case for pointers under wasm64 or CAN_ADDRESS_2GB mode.
+          ch == 112 ? HEAPU32[((buf)>>2)] :
+          ch == 105 ?
+            HEAP32[((buf)>>2)] :
+            HEAPF64[((buf)>>3)]
+        );
+        buf += wide ? 8 : 4;
+      }
+      return readEmAsmArgsArray;
+    };
+  var runEmAsmFunction = (code, sigPtr, argbuf) => {
+      var args = readEmAsmArgs(sigPtr, argbuf);
+      assert(ASM_CONSTS.hasOwnProperty(code), `No EM_ASM constant found at address ${code}.  The loaded WebAssembly file is likely out of sync with the generated JavaScript.`);
+      return ASM_CONSTS[code].apply(null, args);
+    };
+  var _emscripten_asm_const_int = (code, sigPtr, argbuf) => {
+      return runEmAsmFunction(code, sigPtr, argbuf);
     };
 
   var _emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
@@ -7363,6 +7408,8 @@ var wasmImports = {
   /** @export */
   abort: _abort,
   /** @export */
+  emscripten_asm_const_int: _emscripten_asm_const_int,
+  /** @export */
   emscripten_memcpy_js: _emscripten_memcpy_js,
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
@@ -7481,9 +7528,9 @@ var wasmImports = {
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
-var _update_camera_state = Module['_update_camera_state'] = createExportWrapper('update_camera_state');
 var _lock = Module['_lock'] = createExportWrapper('lock');
 var _free_lock = Module['_free_lock'] = createExportWrapper('free_lock');
+var _update_camera_state = Module['_update_camera_state'] = createExportWrapper('update_camera_state');
 var ___errno_location = createExportWrapper('__errno_location');
 var _main = Module['_main'] = createExportWrapper('main');
 var _fflush = Module['_fflush'] = createExportWrapper('fflush');
@@ -7503,8 +7550,7 @@ var dynCall_viijii = Module['dynCall_viijii'] = createExportWrapper('dynCall_vii
 var dynCall_iiiiij = Module['dynCall_iiiiij'] = createExportWrapper('dynCall_iiiiij');
 var dynCall_iiiiijj = Module['dynCall_iiiiijj'] = createExportWrapper('dynCall_iiiiijj');
 var dynCall_iiiiiijj = Module['dynCall_iiiiiijj'] = createExportWrapper('dynCall_iiiiiijj');
-var ___start_em_js = Module['___start_em_js'] = 832608;
-var ___stop_em_js = Module['___stop_em_js'] = 832816;
+
 
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
@@ -7532,7 +7578,7 @@ var missingLibrarySymbols = [
   'getCallstack',
   'emscriptenLog',
   'convertPCtoSourceLocation',
-  'readEmAsmArgs',
+  'runMainThreadEmAsm',
   'jstoi_s',
   'listenOnce',
   'autoResumeAudioContext',
@@ -7715,6 +7761,8 @@ var unexportedSymbols = [
   'warnOnce',
   'UNWIND_CACHE',
   'readEmAsmArgsArray',
+  'readEmAsmArgs',
+  'runEmAsmFunction',
   'jstoi_q',
   'getExecutableName',
   'handleException',
