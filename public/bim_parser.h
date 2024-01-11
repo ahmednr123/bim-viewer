@@ -52,10 +52,6 @@ static Limit getLimit (json &meshes, json &elements, int index) {
         for (int j = 0; j < meshes[i]["coordinates"].size(); j+=3) {
             auto mesh = meshes[i]["coordinates"];
             auto vertex = (float)mesh[j+index];
-            //+ (float)elements[i]["vector"][
-            //    index == 0 ? "x" :
-            //        (index == 1 ? "y" : "z")
-            //];
             if (vertex < limit.min)
                 limit.min = vertex;
             if (vertex > limit.max)
