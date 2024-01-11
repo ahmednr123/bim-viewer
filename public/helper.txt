@@ -1,0 +1,10 @@
+- Call update_lock from js on socket.on("lock_acquired")
+- Call acquire_lock from c++ on user mouse input, and do socket.emit("acquire_lock")
+- Call update_camera from js on socket.on("camera_movement")
+- Call
+      const shared_data = {isLocked: false};
+      document.addEventListener('click', (evt) => {
+          console.log('Click from JS');
+          shared_data.isLocked = !shared_data.isLocked;
+          Module._update_lock(shared_data.isLocked);
+      });
