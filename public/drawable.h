@@ -22,10 +22,12 @@ public:
         unsigned int v1, v2, v3;
     } Indices;
 
-    float scale = 1.0f;
-    vec3 position;
-    vec3 rotation;
-    vec4 color;
+    typedef struct {
+        float scale;
+        vec3 position;
+        vec3 rotation;
+        vec4 color;
+    } DrawableObject;
 
 private:
     int vertices_size;
@@ -42,6 +44,7 @@ private:
 
     Shader shader;
 
+    std::vector<DrawableObject> objects;
 
 public:
     Drawable (Shader shader, Vertices *vertices, int vertices_size)

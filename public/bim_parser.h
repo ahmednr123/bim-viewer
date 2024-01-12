@@ -97,6 +97,15 @@ static void populateNormal (vec3 &normal, json &indices, json &vertices, int ind
     vec3_norm(normal, cross_prod);
 }
 
+static BIMObject getBIMObject3 (json &bim_json, json &mesh, Limit x_limit, Limit y_limit, Limit z_limit) {
+    BIMObject obj;
+    obj.has_indices = false;
+
+    json elements = mesh["elements"];
+    for () {
+    }
+}
+
 static BIMObject getBIMObject2 (json &bim_json, json &mesh, Limit x_limit, Limit y_limit, Limit z_limit) {
     BIMObject obj;
     obj.has_indices = false;

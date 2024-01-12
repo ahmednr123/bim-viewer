@@ -965,11 +965,11 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  832656: ($0, $1, $2) => { console.log("Trying to push camera state: "+JSON.stringify(shared_data)); if (!shared_data.is_locked) { shared_data.camera_state.fov = $0; shared_data.camera_state.theta = $1; shared_data.camera_state.phi = $2; console.log("Pushing camera state to server"); socket.emit("camera-angles", shared_data.camera_state); } },  
- 832976: ($0, $1, $2) => { console.log("Trying to push camera state: "+JSON.stringify(shared_data)); socket.emit("acquire-lock", {}); if (!shared_data.is_locked) { shared_data.camera_state.fov = $0; shared_data.camera_state.theta = $1; shared_data.camera_state.phi = $2; console.log("Pushing camera state to server"); socket.emit("camera-angles", shared_data.camera_state); } socket.emit("free-lock", {}); },  
- 833359: () => { free_socket_lock() },  
- 833378: () => { acquire_lock() },  
- 833393: () => { free_socket_lock() }
+  832656: ($0, $1, $2) => { if (!shared_data.is_locked) { shared_data.camera_state.fov = $0; shared_data.camera_state.theta = $1; shared_data.camera_state.phi = $2; socket.emit("camera-angles", shared_data.camera_state); } },  
+ 832855: ($0, $1, $2) => { socket.emit("acquire-lock", {}); if (!shared_data.is_locked) { shared_data.camera_state.fov = $0; shared_data.camera_state.theta = $1; shared_data.camera_state.phi = $2; socket.emit("camera-angles", shared_data.camera_state); } socket.emit("free-lock", {}); },  
+ 833117: () => { free_socket_lock() },  
+ 833136: () => { acquire_lock() },  
+ 833151: () => { free_socket_lock() }
 };
 
 

@@ -190,7 +190,7 @@ int main (void) {
 
     std::vector<Drawable> objects;
     for (int i = 0; i < bim_json["meshes"].size(); i++) {
-        BIMObject obj = getBIMObject2(bim_json, bim_json["meshes"][i], x_limit, y_limit, z_limit);
+        BIMObject obj = getBIMObject(bim_json, bim_json["meshes"][i], x_limit, y_limit, z_limit);
         if (obj.has_indices) {
             Drawable drawable = {shader, obj.vertices, obj.vertices_size, obj.indices, obj.indices_size};
             drawable.setScale(1.f);
