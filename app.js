@@ -75,7 +75,7 @@ io.on("connection", socket => {
 const port = process.env.PORT || 8080;
 
 app.get("/", function (req, res) {
-    res.sendFile(path.resolve(__dirname, "public/index.html"));
+    res.sendFile(path.resolve(__dirname, "public/index.backup.html"));
 });
 
 app.use(express.static("public"));
